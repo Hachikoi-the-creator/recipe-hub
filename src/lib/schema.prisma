@@ -1,0 +1,66 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String        @id @default(uuid())
+  email             String        @unique
+  nickname          String
+  created_recipes   Recipes[]     @relation("created_by")
+  favourite_recipes Recipes[]     @relation("favourited_by")
+  ingredients_added Ingredients[]
+  level             Int           @default(1)
+  xp_points         Int           @default(10)
+  profile_img       String        @default("https://res.cloudinary.com/dfixfnldt/image/upload/v1691374601/hc0xnnkcvcojw0n3vaaz.png")
+  Comments          Comments[]
+  Steps             Steps[]
+}
+
+model Recipes {
+  id              String        @id @default(uuid())
+  created_by      User          @relation("created_by", fields: [userId], references: [id])
+  userId          String
+  favourited_by   User[]        @relation("favourited_by")
+  comments        Comments[]
+  ingredients_arr Ingredients[]
+  result_img      String
+  dish_name       String
+  is_public       Boolean
+  is_validated    Boolean // once likes >= 3
+  likes           Int
+}
+
+model Ingredients {
+  id        Int      @id @default(autoincrement())
+  name      String
+  unit      String
+  image_url String
+  added_by  User?    @relation(fields: [userId], references: [id])
+  userId    String?
+  Recipes   Recipes? @relation(fields: [recipesId], references: [id])
+  recipesId String?
+}
+
+model Steps {
+  id         Int    @id @default(autoincrement())
+  order      Int
+  img_url    String
+  created_by User   @relation(fields: [userId], references: [id])
+  userId     String
+}
+
+model Comments {
+  id               Int      @id @default(autoincrement())
+  recipe_commented Recipes? @relation(fields: [recipesId], references: [id])
+  recipesId        String?
+  made_by          User     @relation(fields: [userId], references: [id])
+  userId           String
+}
